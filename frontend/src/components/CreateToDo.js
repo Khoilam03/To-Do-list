@@ -53,7 +53,7 @@ export default class CreateToDo extends Component {
           <FormControl>
             <TextField
               required={true}
-              placeholder="Enter Todoasdf Title"
+              placeholder="Enter Todo Title"
               onChange={this.handleTitleChange}
               value={this.state.title}
             />
