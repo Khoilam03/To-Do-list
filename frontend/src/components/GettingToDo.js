@@ -6,6 +6,6 @@ export default class GettingToDo extends Component {
   }
 
   render() {
-    return <p>This is the room join page</p>;
+    return <h1>Getting</h1>;
   }
 }
