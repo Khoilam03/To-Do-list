@@ -6,7 +6,7 @@ import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import { Link } from "react-router-dom";
 
-export default class CreateTodoItem extends Component {
+export default class CreateToDo extends Component {
   constructor(props) {
     super(props);
     this.state = {
