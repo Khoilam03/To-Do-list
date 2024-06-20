@@ -1,8 +1,10 @@
-version: '3.9'
-
+version: '3'
 services:
-  django:
-    image: mockproject:0.0.1
-    build: .
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1

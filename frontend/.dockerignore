@@ -1,6 +1,5 @@
 # Ignore node_modules directory
 node_modules
-frontend
 
 # Ignore build output directory (since it will be created during the build process)
 build
@@ -33,4 +32,3 @@ Dockerfile
 # Ignore OS generated files
 .DS_Store
 Thumbs.db
-db.sqlite3
