@@ -19,3 +19,12 @@ body {
   height: 100%;
   display: flex;
 }
+
+.scrollable-list {
+  max-height: 200px;
+  /* Adjust based on your preference */
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* Enables vertical scrolling */
+  padding: 5px;
+}

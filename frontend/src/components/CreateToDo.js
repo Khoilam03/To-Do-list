@@ -6,7 +6,6 @@ import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Checkbox from "@material-ui/core/Checkbox";
 import { Link } from "react-router-dom";
-
 export default class CreateToDo extends Component {
   constructor(props) {
     super(props);
@@ -21,7 +20,6 @@ export default class CreateToDo extends Component {
       editCompleted: false, // Completion status of the todo item being edited
       showDeleteButtons: false, // State to control the visibility of delete buttons
     };
-
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleCompletedChange = this.handleCompletedChange.bind(this);
     this.handleCreateButtonPressed = this.handleCreateButtonPressed.bind(this);
@@ -32,7 +30,6 @@ export default class CreateToDo extends Component {
     this.handleEditCompletedChange = this.handleEditCompletedChange.bind(this);
     this.deleteButtons = this.deleteButtons.bind(this);
   }
-
   componentDidMount() {
     this.fetchTodos();
   }
@@ -68,7 +65,15 @@ export default class CreateToDo extends Component {
     };
     fetch("/api/", requestOptions)
       .then((response) => response.json())
-      .then((data) => this.fetchTodos());
+      .then((data) => {
+        this.setState(prevState => ({
+          todos: [...prevState.todos, data],
+          title: "",
+          completed: false,
+        }));
+        this.setState({ title: "", completed: false });
+      });
+
   }
 
   handleDeleteButtonPressed(id) {
@@ -77,13 +82,24 @@ export default class CreateToDo extends Component {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     };
+
     fetch("/api/", requestOptions)
       .then((response) => {
         if (response.ok) {
-          this.fetchTodos();
+          this.setState(prevState => ({
+            todos: prevState.todos.filter(todo => todo.id !== id)
+          }));
+        } else {
+          // Handle errors, maybe the item wasn't deleted on the server
+          throw new Error('Failed to delete the item.');
         }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete the todo item');
       });
   }
+
 
   handleEditButtonPressed(todo) {
     this.setState({
@@ -106,9 +122,9 @@ export default class CreateToDo extends Component {
     fetch("/api/", requestOptions)
       .then((response) => response.json())
       .then((data) => {
-        this.setState({ editId: null, editTitle: "", editCompleted: false });
-        this.fetchTodos();
+        this.setState({editId: null, editTitle: "", editCompleted: false})
       });
+      this.fetchTodos()
   }
 
   handleEditTitleChange(e) {
@@ -122,9 +138,13 @@ export default class CreateToDo extends Component {
   deleteButtons() {
     this.setState((prevState) => ({
       showDeleteButtons: !prevState.showDeleteButtons,
-    }));
+    }))
   }
-
+  handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      this.handleCreateButtonPressed(); // Corrected to call the function
+    }
+  };
   render() {
     const { todos, isLoading, error, editId, editTitle, editCompleted, showDeleteButtons } = this.state;
 
@@ -135,7 +155,9 @@ export default class CreateToDo extends Component {
     if (isLoading) {
       return <div>Loading...</div>;
     }
-
+    const completedStyle = {
+      backgroundColor: 'lightgreen', // Set the background color for completed items
+    };
     return (
       <Grid container spacing={1}>
         <Grid item xs={12} align="center">
@@ -149,6 +171,7 @@ export default class CreateToDo extends Component {
               required={true}
               placeholder="Enter Todo Title"
               onChange={this.handleTitleChange}
+              onKeyPress={this.handleKeyPress}
               value={this.state.title}
             />
           </FormControl>
@@ -187,11 +210,15 @@ export default class CreateToDo extends Component {
             Delete
           </Button>
         </Grid>
-        <div>
-          <h1>Todo List</h1>
+        <Grid item xs={9}>        <h1>Todo List</h1> </Grid>
+        <Grid class="scrollable-list">
           <ul>
             {todos.map((todo) => (
-              <li key={todo.id} style={{ marginBottom: '10px' }}>
+              <li key={todo.id} style={{
+                marginRight: '10px',
+                padding: '10px',
+                ...(todo.completed ? completedStyle : {})
+              }}>
                 {editId === todo.id ? (
                   <div>
                     <TextField
@@ -236,8 +263,8 @@ export default class CreateToDo extends Component {
               </li>
             ))}
           </ul>
-        </div>
-      </Grid> 
+        </Grid>
+      </Grid>
     );
   }
 }

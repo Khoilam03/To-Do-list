@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 
+
 export default class GettingToDo extends Component {
   constructor(props) {
     super(props);
@@ -13,7 +14,6 @@ export default class GettingToDo extends Component {
   componentDidMount() {
     this.fetchTodos();
   }
-
   fetchTodos() {
     fetch('/api/json')
       .then(response => {
@@ -36,7 +36,6 @@ export default class GettingToDo extends Component {
     if (isLoading) {
       return <div>Loading...</div>;
     }
-
     return (
       <div>
         <h1>Todo List</h1>
