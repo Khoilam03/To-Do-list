@@ -13,7 +13,7 @@ class TodoAPITest(APITestCase):
         """
         Ensure we can retrieve a list of todos.
         """
-        url = reverse('Todos')
+        url = reverse('api')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # Assumes you have a serializer that returns the entire queryset
