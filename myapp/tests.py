@@ -1,13 +1,13 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from .models import Todo
+from .models import TodoItem
 
 class TodoAPITest(APITestCase):
     def setUp(self):
         # Setup method to create test data
-        Todo.objects.create(title="Test Todo Item 1", completed=False)
-        Todo.objects.create(title="Test Todo Item 2", completed=True)
+        TodoItem.objects.create(title="Test Todo Item 1", completed=False)
+        TodoItem.objects.create(title="Test Todo Item 2", completed=True)
 
     def test_get_todos(self):
         """
@@ -26,17 +26,17 @@ class TodoAPITest(APITestCase):
         data = {'title': 'New Todo', 'completed': False}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Todo.objects.count(), 3)  # Assuming the setUp created two, and we add one here
+        self.assertEqual(TodoItem.objects.count(), 3)  # Assuming the setUp created two, and we add one here
 
     def test_delete_todo(self):
         """
         Ensure we can delete a todo item.
         """
-        todo = Todo.objects.first()  # Get the first todo added in setUp
+        todo = TodoItem.objects.first()  # Get the first todo added in setUp
         url = reverse('Todos') + str(todo.id) + '/'
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Todo.objects.count(), 1)  # One should be left after delete
+        self.assertEqual(TodoItem.objects.count(), 1)  # One should be left after delete
 
     def test_todo_json(self):
         """
