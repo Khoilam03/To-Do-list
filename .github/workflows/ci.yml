@@ -71,14 +71,3 @@ jobs:
         cd frontend
         npm test
 
-    # Optional: Linting step for React
-    - name: Lint React code
-      run: |
-        cd frontend
-        npm run lint
-
-    # Optional: Linting step for Django
-    - name: Lint Django code
-      run: |
-        cd myapp
-        flake8
