@@ -13,7 +13,7 @@ class TodoItemAPITest(APITestCase):
         """
         Ensure we can retrieve a list of todos from /api.
         """
-        url = reverse('api')  # Assuming 'api' is the name of the URL pattern for listing todos
+        url = reverse('Todo')  # Assuming 'Todo' is the name of the URL pattern for listing todos
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # Checks if the count of todos is correct
@@ -22,7 +22,7 @@ class TodoItemAPITest(APITestCase):
         """
         Ensure we can create a new todo item via /api.
         """
-        url = reverse('api')
+        url = reverse('Todo')
         data = {'title': 'New Todo', 'completed': False}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
