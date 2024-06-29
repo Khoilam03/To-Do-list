@@ -19,10 +19,6 @@ export default class Calendar extends Component {
     return dates;
   }
 
-
-
-
-
   render() {
     const { today, currentWeek } = this.state;
     const { taskSummary } = this.props;
@@ -36,7 +32,7 @@ export default class Calendar extends Component {
         <table>
           <thead>
             <tr>
-            {currentWeek.map((date, index) => (
+              {currentWeek.map((date, index) => (
                 <th key={index}>
                   {date.toLocaleString('default', { weekday: 'short' })}
                 </th>
@@ -48,6 +44,7 @@ export default class Calendar extends Component {
               {currentWeek.map((date, index) => {
                 const dateStr = date.toISOString().split('T')[0];
                 const summary = taskSummary[dateStr];
+                const totalTasks = summary ? summary.completed + summary.not_completed : 0;
 
                 return (
                   <td
@@ -57,8 +54,7 @@ export default class Calendar extends Component {
                     {date.getDate()}
                     {summary && (
                       <div>
-                        <p>Completed: {summary.completed}</p>
-                        <p>Not Completed: {summary.not_completed}</p>
+                        <p>Completed: {summary.completed}/{totalTasks}</p>
                       </div>
                     )}
                   </td>
