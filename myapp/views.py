@@ -27,11 +27,13 @@ def todoList(request):
         return Response(serializer.data)
 
     if request.method == "POST":
-        serializer = TodoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.data:
+            serializer = TodoSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response("Empty data provided", status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == "DELETE":
         item_id = request.data.get('id')

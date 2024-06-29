@@ -17,7 +17,8 @@ export default class CreateToDo extends Component {
       isLoading: true,
       error: null,
       showDeleteButtons: false,
-      taskSummary: {}
+      taskSummary: {},
+      hoveredItemId: null,
     };
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleCompletedChange = this.handleCompletedChange.bind(this);
@@ -56,10 +57,10 @@ export default class CreateToDo extends Component {
       })
       .then((data) => {
         const taskSummary = {};
-        data.forEach(summary => {
+        data.forEach((summary) => {
           taskSummary[summary.date] = {
             completed: summary.completed,
-            not_completed: summary.not_completed
+            not_completed: summary.not_completed,
           };
         });
         this.setState({ taskSummary });
@@ -144,91 +145,92 @@ export default class CreateToDo extends Component {
   handleSubmit() {
     const curr = new Date();
     curr.setHours(0, 0, 0, 0); // Set the time to midnight to avoid any time zone issues
-    const today = curr.toISOString().split('T')[0];
-    const completedTasks = this.state.todos.filter(todo => todo.completed).length;
+    const today = curr.toISOString().split("T")[0];
+    const completedTasks = this.state.todos.filter((todo) => todo.completed)
+      .length;
     const notCompletedTasks = this.state.todos.length - completedTasks;
 
     const taskSummaryData = {
       date: today,
       completed: completedTasks,
-      not_completed: notCompletedTasks
+      not_completed: notCompletedTasks,
     };
 
     // First, check if data for today already exists
     fetch(`/calendar/tasks/${today}/`, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
-    .then(response => {
-      if (response.ok) {
-        // If data exists, update it with PUT
-        return fetch(`/calendar/tasks/${today}/`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(taskSummaryData)
-        });
-      } else if (response.status === 404) {
-        // If data does not exist, create it with POST
-        return fetch("/calendar/tasks/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(taskSummaryData)
-        });
-      } else {
-        throw new Error('Network response was not ok');
-      }
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      this.setState((prevState) => ({
-        taskSummary: {
-          ...prevState.taskSummary,
-          [today]: {
-            completed: data.completed,
-            not_completed: data.not_completed,
-          }
+      .then((response) => {
+        if (response.ok) {
+          // If data exists, update it with PUT
+          return fetch(`/calendar/tasks/${today}/`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(taskSummaryData),
+          });
+        } else if (response.status === 404) {
+          // If data does not exist, create it with POST
+          return fetch("/calendar/tasks/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(taskSummaryData),
+          });
+        } else {
+          throw new Error("Network response was not ok");
         }
-      }));
-      this.fetchTaskSummaries(); // Fetch updated task summaries
-    })
-    .catch(error => {
-      console.error('Error submitting task summary:', error);
-    });
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        this.setState((prevState) => ({
+          taskSummary: {
+            ...prevState.taskSummary,
+            [today]: {
+              completed: data.completed,
+              not_completed: data.not_completed,
+            },
+          },
+        }));
+        this.fetchTaskSummaries(); // Fetch updated task summaries
+      })
+      .catch((error) => {
+        console.error("Error submitting task summary:", error);
+      });
   }
 
   handleClear() {
     fetch("/api/clear/", {
       method: "DELETE",
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
-    .then(response => {
-      if (response.ok) {
-        this.setState({
-          todos: [],
-        });}
-      else {
-        throw new Error('Failed to clear tasks');
-      }
-      return response.json();
-    })
-    .catch(error => {
-      console.error('Error clearing tasks:', error);
-    });
+      .then((response) => {
+        if (response.ok) {
+          this.setState({
+            todos: [],
+          });
+        } else {
+          throw new Error("Failed to clear tasks");
+        }
+        return response.json();
+      })
+      .catch((error) => {
+        console.error("Error clearing tasks:", error);
+      });
   }
-  
+
   deleteButtons() {
     this.setState((prevState) => ({
       showDeleteButtons: !prevState.showDeleteButtons,
@@ -242,7 +244,7 @@ export default class CreateToDo extends Component {
   };
 
   render() {
-    const { todos, isLoading, error, showDeleteButtons, taskSummary } = this.state;
+    const { todos, isLoading, error, showDeleteButtons, taskSummary, hoveredItemId } = this.state;
 
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -258,7 +260,15 @@ export default class CreateToDo extends Component {
     const nonCompletedStyle = {
       backgroundColor: "lightyellow",
     };
-
+    const hoverStyle = {
+      filter: "brightness(95%)",
+      cursor: "pointer",
+    };
+    const hoverDelete = {
+      backgroundColor: "red",
+      cursor: "pointer",
+    };
+    const buttonColor = showDeleteButtons ? "secondary" : "default";
     return (
       <Grid container spacing={1}>
         <Grid item xs={5}></Grid>
@@ -302,10 +312,12 @@ export default class CreateToDo extends Component {
             Create Todo Item
           </Button>
         </Grid>
-        <Grid item xs={5}>        <h1>Todo List</h1> </Grid>
+        <Grid item xs={5}>
+          <h1>Todo List</h1>
+        </Grid>
         <Grid item xs={1}>
           <Button
-            color="default"
+            color={buttonColor}
             variant="contained"
             onClick={this.deleteButtons}
           >
@@ -330,36 +342,41 @@ export default class CreateToDo extends Component {
             Submit
           </Button>
         </Grid>
-        <Grid class="scrollable-list">
-          <ul>
+        <Grid item xs={4} className="scrollable-list">
+          <ul style={{ listStyleType: "none", padding: 0 }}>
             {todos.map((todo) => (
-              <li key={todo.id} style={{
-                marginRight: '10px',
-                padding: '10px',
-                ...(todo.completed ? completedStyle : nonCompletedStyle)
-              }}>
-                <span style={{ marginRight: '10px' }}>
-                  {todo.title} - {todo.completed ? 'Completed' : 'Not Completed'}
+              <li
+                key={todo.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginRight: "10px",
+                  marginLeft: 0,
+                  padding: "10px",
+                  ...(todo.completed ? completedStyle : nonCompletedStyle),
+                  ...(hoveredItemId !== null && !showDeleteButtons && hoveredItemId === todo.id
+                    ? hoverStyle
+                    : {}),
+                  ...(hoveredItemId !== null && showDeleteButtons  && hoveredItemId === todo.id
+                    ? hoverDelete
+                    : {}),
+                }}
+                onClick={() => showDeleteButtons ? this.handleDeleteButtonPressed(todo.id) : this.handleToggleButtonPressed(todo)}
+                onMouseEnter={() =>
+                  this.setState({ hoveredItemId: todo.id })
+                }
+                onMouseLeave={() =>
+                  this.setState({ hoveredItemId: null })
+                }
+              >
+                <span style={{ marginRight: "auto", fontWeight: "bold" }}>
+                  {todo.title}
                 </span>
-                {showDeleteButtons && (
-                  <Button
-                    color="secondary"
-                    variant="contained"
-                    onClick={() => this.handleDeleteButtonPressed(todo.id)}
-                    size="small"
-                  >
-                    Delete
-                  </Button>
-                )}
-                <Button
-                  color="default"
-                  variant="contained"
-                  onClick={() => this.handleToggleButtonPressed(todo)}
-                  size="small"
-                >
-                  Flip
-                </Button>
+                <span style={{ marginLeft: "auto" }}>
+                  {todo.completed ? "Completed" : "Not Completed"}
+                </span>
               </li>
+
             ))}
           </ul>
         </Grid>

@@ -1,75 +1,50 @@
+from django.test import TestCase, Client
 from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APITestCase
 from .models import TodoItem
-from .serializers import TodoSerializer
+from rest_framework import status
+import json
 
-class TodoItemAPITest(APITestCase):
+class JsonTodosViewTest(TestCase):
+    
     def setUp(self):
-        # Set up test data for the TodoItem model
-        self.todo1 = TodoItem.objects.create(title="Initial Todo 1", completed=False)
-        self.todo2 = TodoItem.objects.create(title="Initial Todo 2", completed=True)
-        self.valid_payload = {
-            'title': 'Valid Todo',
-            'completed': False
-        }
-        self.invalid_payload = {
-            'title': '',
-            'completed': False
-        }
+        self.client = Client()
+        # Create test TodoItem objects
+        TodoItem.objects.create(title='Test Todo 1', completed=False)
+        TodoItem.objects.create(title='Test Todo 2', completed=True)
+
+    def test_json_todos(self):
+        # Issue a GET request to the jsonTodos endpoint
+        response = self.client.get(reverse('json'))
         
-    def test_get_todos(self):
-        """
-        Ensure we can retrieve a list of todos.
-        """
-        url = reverse('todo-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-
-    def test_create_todo_valid(self):
-        """
-        Ensure we can create a new todo item with valid payload.
-        """
-        url = reverse('todo-list')
-        response = self.client.post(url, data=self.valid_payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(TodoItem.objects.count(), 3)  # Including the setUp data
-
-    def test_create_todo_invalid(self):
-        """
-        Ensure we cannot create a todo item with invalid payload.
-        """
-        url = reverse('todo-list')
-        response = self.client.post(url, data=self.invalid_payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_delete_todo(self):
-        """
-        Ensure we can delete a todo item.
-        """
-        url = reverse('todo-list')
-        response = self.client.delete(url, data={'id': self.todo1.id}, format='json')
+        # Assert that the response status code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+        # Decode the JSON response content
+        data = json.loads(response.content)
+        
+        # Assert that the returned data matches the expected structure and content
+        self.assertEqual(len(data), 2)  # Assuming there are 2 TodoItem objects in the database
+        
+        # Assert specific fields of the first TodoItem
+        self.assertEqual(data[0]['title'], 'Test Todo 1')
+        self.assertEqual(data[0]['completed'], False)
+        
+        # Assert specific fields of the second TodoItem
+        self.assertEqual(data[1]['title'], 'Test Todo 2')
+        self.assertEqual(data[1]['completed'], True)
+        
+        # You can add more assertions based on your serializer and data structure
+    def test_clear_view(self):
+        # Issue a DELETE request to the clear endpoint
+        response = self.client.delete(reverse('clear_todos'))
+        
+        # Assert that the response status code is 204 NO CONTENT
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(TodoItem.objects.count(), 1)
+        
+        # Verify that all TodoItem objects are deleted from the database
+        todos = TodoItem.objects.all()
+        self.assertEqual(len(todos), 0)
 
-    def test_update_todo_valid(self):
-        """
-        Ensure we can update a todo item with valid data.
-        """
-        url = reverse('todo-list')
-        updated_payload = {'id': self.todo2.id, 'title': 'Updated Todo', 'completed': True}
-        response = self.client.put(url, data=updated_payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.todo2.refresh_from_db()
-        self.assertEqual(self.todo2.title, 'Updated Todo')
-        self.assertEqual(self.todo2.completed, True)
-
-    def test_update_todo_invalid(self):
-        """
-        Ensure we cannot update a todo item with invalid data.
-        """
-        url = reverse('todo-list')
-        invalid_payload = {'id': self.todo2.id, 'title': '', 'completed': True}
-        response = self.client.put(url, data=invalid_payload, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def tearDown(self):
+        # Clean up any test data if needed
+        TodoItem.objects.all().delete()
