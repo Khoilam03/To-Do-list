@@ -25,6 +25,7 @@ export default class CreateToDo extends Component {
     this.handleDeleteButtonPressed = this.handleDeleteButtonPressed.bind(this);
     this.handleToggleButtonPressed = this.handleToggleButtonPressed.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleClear = this.handleClear.bind(this);
     this.deleteButtons = this.deleteButtons.bind(this);
   }
 
@@ -206,6 +207,28 @@ export default class CreateToDo extends Component {
     });
   }
 
+  handleClear() {
+    fetch("/api/clear/", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        this.setState({
+          todos: [],
+        });}
+      else {
+        throw new Error('Failed to clear tasks');
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error('Error clearing tasks:', error);
+    });
+  }
+  
   deleteButtons() {
     this.setState((prevState) => ({
       showDeleteButtons: !prevState.showDeleteButtons,
@@ -220,6 +243,7 @@ export default class CreateToDo extends Component {
 
   render() {
     const { todos, isLoading, error, showDeleteButtons, taskSummary } = this.state;
+
     if (error) {
       return <div>Error: {error.message}</div>;
     }
@@ -263,6 +287,7 @@ export default class CreateToDo extends Component {
               <Checkbox
                 checked={this.state.completed}
                 onChange={this.handleCompletedChange}
+                onKeyPress={this.handleKeyPress}
               />
             </label>
           </FormControl>
@@ -279,17 +304,21 @@ export default class CreateToDo extends Component {
         </Grid>
         <Grid item xs={5}>        <h1>Todo List</h1> </Grid>
         <Grid item xs={1}>
-          <Button color="secondary" variant="contained" href="/">
-            Back
-          </Button>
-        </Grid>
-        <Grid item xs={1}>
           <Button
             color="default"
             variant="contained"
             onClick={this.deleteButtons}
           >
             Delete
+          </Button>
+        </Grid>
+        <Grid item xs={1}>
+          <Button
+            color="secondary"
+            variant="contained"
+            onClick={this.handleClear}
+          >
+            Clear
           </Button>
         </Grid>
         <Grid item xs={4}>

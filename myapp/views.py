@@ -15,6 +15,10 @@ def todos(request):
 def jsonTodos(request):
     items = TodoItem.objects.all().values()
     return JsonResponse(list(items), safe=False) 
+@api_view(['DELETE'])
+def clear(request):
+    deleted, _ = TodoItem.objects.all().delete()
+    return Response({"deleted": deleted}, status=status.HTTP_204_NO_CONTENT)
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
 def todoList(request):
     if request.method == "GET":
