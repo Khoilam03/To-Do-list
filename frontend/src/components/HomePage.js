@@ -8,7 +8,6 @@ import {
   Redirect,
 } from "react-router-dom";
 import CreateToDo from "./CreateToDo";
-import GettingToDo from "./GettingToDo";
 
 export default class HomePage extends Component {
   constructor(props) {
@@ -25,7 +24,6 @@ export default class HomePage extends Component {
               To Do List
             </Button>
           </Route>
-          <Route path="/get" component={GettingToDo} />
           <Route path="/create" component={CreateToDo} />
         </Switch>
       </Router>

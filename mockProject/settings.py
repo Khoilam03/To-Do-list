@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myapp',
     'rest_framework',
-    'frontend'
+    'frontend',
+    'calendarapi'
 ]
 
 MIDDLEWARE = [

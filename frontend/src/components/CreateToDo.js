@@ -5,45 +5,67 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import Checkbox from "@material-ui/core/Checkbox";
-import { Link } from "react-router-dom";
+import Calendar from "./Calendar.js";
+
 export default class CreateToDo extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: "", // Title of the todo item
-      completed: false, // Completion status
-      todos: [], // Array to hold todo items
-      isLoading: true, // Loading state indicator
-      error: null, // Error state for handling fetch errors
-      editId: null, // ID of the todo item being edited
-      editTitle: "", // Title of the todo item being edited
-      editCompleted: false, // Completion status of the todo item being edited
-      showDeleteButtons: false, // State to control the visibility of delete buttons
+      title: "",
+      completed: false,
+      todos: [],
+      isLoading: true,
+      error: null,
+      showDeleteButtons: false,
+      taskSummary: {}
     };
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleCompletedChange = this.handleCompletedChange.bind(this);
     this.handleCreateButtonPressed = this.handleCreateButtonPressed.bind(this);
     this.handleDeleteButtonPressed = this.handleDeleteButtonPressed.bind(this);
-    this.handleEditButtonPressed = this.handleEditButtonPressed.bind(this);
-    this.handleUpdateButtonPressed = this.handleUpdateButtonPressed.bind(this);
-    this.handleEditTitleChange = this.handleEditTitleChange.bind(this);
-    this.handleEditCompletedChange = this.handleEditCompletedChange.bind(this);
+    this.handleToggleButtonPressed = this.handleToggleButtonPressed.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
     this.deleteButtons = this.deleteButtons.bind(this);
   }
+
   componentDidMount() {
     this.fetchTodos();
+    this.fetchTaskSummaries();
   }
 
   fetchTodos() {
-    fetch('/api/json')
-      .then(response => {
-        if (!response.ok) { // Check if response went through
-          throw new Error('Network response was not OK');
+    fetch("/api/json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not OK");
         }
         return response.json();
       })
-      .then(data => this.setState({ todos: data, isLoading: false }))
-      .catch(error => this.setState({ error, isLoading: false }));
+      .then((data) => this.setState({ todos: data, isLoading: false }))
+      .catch((error) => this.setState({ error, isLoading: false }));
+  }
+
+  fetchTaskSummaries() {
+    fetch("/calendar/tasks/")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not OK");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const taskSummary = {};
+        data.forEach(summary => {
+          taskSummary[summary.date] = {
+            completed: summary.completed,
+            not_completed: summary.not_completed
+          };
+        });
+        this.setState({ taskSummary });
+      })
+      .catch((error) => {
+        console.error("Error fetching task summaries:", error);
+      });
   }
 
   handleTitleChange(e) {
@@ -66,14 +88,12 @@ export default class CreateToDo extends Component {
     fetch("/api/", requestOptions)
       .then((response) => response.json())
       .then((data) => {
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
           todos: [...prevState.todos, data],
           title: "",
           completed: false,
         }));
-        this.setState({ title: "", completed: false });
       });
-
   }
 
   handleDeleteButtonPressed(id) {
@@ -86,68 +106,120 @@ export default class CreateToDo extends Component {
     fetch("/api/", requestOptions)
       .then((response) => {
         if (response.ok) {
-          this.setState(prevState => ({
-            todos: prevState.todos.filter(todo => todo.id !== id)
+          this.setState((prevState) => ({
+            todos: prevState.todos.filter((todo) => todo.id !== id),
           }));
         } else {
-          // Handle errors, maybe the item wasn't deleted on the server
-          throw new Error('Failed to delete the item.');
+          throw new Error("Failed to delete the item.");
         }
       })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to delete the todo item');
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Failed to delete the todo item");
       });
   }
 
-
-  handleEditButtonPressed(todo) {
-    this.setState({
-      editId: todo.id,
-      editTitle: todo.title,
-      editCompleted: todo.completed,
-    });
-  }
-
-  handleUpdateButtonPressed() {
+  handleToggleButtonPressed(todo) {
     const requestOptions = {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: this.state.editId,
-        title: this.state.editTitle,
-        completed: this.state.editCompleted,
+        id: todo.id,
+        title: todo.title,
+        completed: !todo.completed,
       }),
     };
     fetch("/api/", requestOptions)
       .then((response) => response.json())
       .then((data) => {
-        this.setState({editId: null, editTitle: "", editCompleted: false})
+        this.setState((prevState) => ({
+          todos: prevState.todos.map((t) =>
+            t.id === data.id ? { ...t, completed: data.completed } : t
+          ),
+        }));
       });
-      this.fetchTodos()
   }
 
-  handleEditTitleChange(e) {
-    this.setState({ editTitle: e.target.value });
-  }
+  handleSubmit() {
+    const curr = new Date();
+    curr.setHours(0, 0, 0, 0); // Set the time to midnight to avoid any time zone issues
+    const today = curr.toISOString().split('T')[0];
+    const completedTasks = this.state.todos.filter(todo => todo.completed).length;
+    const notCompletedTasks = this.state.todos.length - completedTasks;
 
-  handleEditCompletedChange(e) {
-    this.setState({ editCompleted: e.target.checked });
+    const taskSummaryData = {
+      date: today,
+      completed: completedTasks,
+      not_completed: notCompletedTasks
+    };
+
+    // First, check if data for today already exists
+    fetch(`/calendar/tasks/${today}/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        // If data exists, update it with PUT
+        return fetch(`/calendar/tasks/${today}/`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(taskSummaryData)
+        });
+      } else if (response.status === 404) {
+        // If data does not exist, create it with POST
+        return fetch("/calendar/tasks/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(taskSummaryData)
+        });
+      } else {
+        throw new Error('Network response was not ok');
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      this.setState((prevState) => ({
+        taskSummary: {
+          ...prevState.taskSummary,
+          [today]: {
+            completed: data.completed,
+            not_completed: data.not_completed,
+          }
+        }
+      }));
+      this.fetchTaskSummaries(); // Fetch updated task summaries
+    })
+    .catch(error => {
+      console.error('Error submitting task summary:', error);
+    });
   }
 
   deleteButtons() {
     this.setState((prevState) => ({
       showDeleteButtons: !prevState.showDeleteButtons,
-    }))
+    }));
   }
+
   handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
-      this.handleCreateButtonPressed(); // Corrected to call the function
+    if (event.key === "Enter") {
+      this.handleCreateButtonPressed();
     }
   };
-  render() {
-    const { todos, isLoading, error, editId, editTitle, editCompleted, showDeleteButtons } = this.state;
 
+  render() {
+    const { todos, isLoading, error, showDeleteButtons, taskSummary } = this.state;
     if (error) {
       return <div>Error: {error.message}</div>;
     }
@@ -155,17 +227,24 @@ export default class CreateToDo extends Component {
     if (isLoading) {
       return <div>Loading...</div>;
     }
+
     const completedStyle = {
-      backgroundColor: 'lightgreen', // Set the background color for completed items
+      backgroundColor: "lightgreen",
     };
+    const nonCompletedStyle = {
+      backgroundColor: "lightyellow",
+    };
+
     return (
       <Grid container spacing={1}>
-        <Grid item xs={12} align="center">
+        <Grid item xs={5}></Grid>
+        <Grid item xs={3} align="center">
           <Typography component="h4" variant="h4">
             Create Todo Item
           </Typography>
         </Grid>
-        <Grid item xs={12} align="center">
+        <Grid item xs={5}></Grid>
+        <Grid item xs={3} align="center">
           <FormControl>
             <TextField
               required={true}
@@ -176,7 +255,8 @@ export default class CreateToDo extends Component {
             />
           </FormControl>
         </Grid>
-        <Grid item xs={12} align="center">
+        <Grid item xs={5}></Grid>
+        <Grid item xs={3} align="center">
           <FormControl>
             <label>
               Completed:
@@ -187,7 +267,8 @@ export default class CreateToDo extends Component {
             </label>
           </FormControl>
         </Grid>
-        <Grid item xs={12} align="center">
+        <Grid item xs={5}></Grid>
+        <Grid item xs={3} align="center">
           <Button
             color="primary"
             variant="contained"
@@ -196,12 +277,13 @@ export default class CreateToDo extends Component {
             Create Todo Item
           </Button>
         </Grid>
-        <Grid item xs={12} align="center">
-          <Button color="secondary" variant="contained" href="/" size="large">
+        <Grid item xs={5}>        <h1>Todo List</h1> </Grid>
+        <Grid item xs={1}>
+          <Button color="secondary" variant="contained" href="/">
             Back
           </Button>
         </Grid>
-        <Grid item xs={12} align="center">
+        <Grid item xs={1}>
           <Button
             color="default"
             variant="contained"
@@ -210,38 +292,26 @@ export default class CreateToDo extends Component {
             Delete
           </Button>
         </Grid>
-        <Grid item xs={9}>        <h1>Todo List</h1> </Grid>
+        <Grid item xs={4}>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={this.handleSubmit}
+          >
+            Submit
+          </Button>
+        </Grid>
         <Grid class="scrollable-list">
           <ul>
             {todos.map((todo) => (
               <li key={todo.id} style={{
                 marginRight: '10px',
                 padding: '10px',
-                ...(todo.completed ? completedStyle : {})
+                ...(todo.completed ? completedStyle : nonCompletedStyle)
               }}>
-                {editId === todo.id ? (
-                  <div>
-                    <TextField
-                      value={editTitle}
-                      onChange={this.handleEditTitleChange}
-                    />
-                    <Checkbox
-                      checked={editCompleted}
-                      onChange={this.handleEditCompletedChange}
-                    />
-                    <Button
-                      color="primary"
-                      variant="contained"
-                      onClick={this.handleUpdateButtonPressed}
-                    >
-                      Update
-                    </Button>
-                  </div>
-                ) : (
-                  <span style={{ marginRight: '10px' }}>
-                    {todo.title} - {todo.completed ? 'Completed' : 'Not Completed'}
-                  </span>
-                )}
+                <span style={{ marginRight: '10px' }}>
+                  {todo.title} - {todo.completed ? 'Completed' : 'Not Completed'}
+                </span>
                 {showDeleteButtons && (
                   <Button
                     color="secondary"
@@ -255,15 +325,16 @@ export default class CreateToDo extends Component {
                 <Button
                   color="default"
                   variant="contained"
-                  onClick={() => this.handleEditButtonPressed(todo)}
+                  onClick={() => this.handleToggleButtonPressed(todo)}
                   size="small"
                 >
-                  Edit
+                  Flip
                 </Button>
               </li>
             ))}
           </ul>
         </Grid>
+        <Calendar taskSummary={taskSummary} />
       </Grid>
     );
   }

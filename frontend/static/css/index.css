@@ -3,7 +3,8 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: lightblue
+  background-color: lightblue;
+  font-family: Arial, sans-serif;
 }
 
 #main {
@@ -21,10 +22,51 @@ body {
 }
 
 .scrollable-list {
-  max-height: 200px;
-  /* Adjust based on your preference */
+  max-height: 300px;
   overflow-y: auto;
   scrollbar-width: none;
-  /* Enables vertical scrolling */
   padding: 5px;
+}
+
+.calendar {
+  border: 1px solid #000000;
+  padding: 10px;
+  border-radius: 1px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px; /* Adjust the width to make the calendar fit the week view */
+  top: 10px;
+  right: 10px;
+  position: fixed;
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px; /* Adjust font size to make it smaller */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px; /* Adjust table font size */
+}
+
+th, td {
+  width: 14.28%;
+  text-align: center;
+  padding: 5px; /* Adjust padding to make it smaller */
+}
+
+th {
+  background-color: #f0f0f0;
+}
+
+td {
+  border: 1px solid #ccc;
+}
+
+td.highlight {
+  background-color: #ffeb3b; /* Highlight color for the current day */
 }
