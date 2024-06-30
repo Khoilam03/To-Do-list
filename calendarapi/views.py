@@ -6,9 +6,6 @@ from .models import TaskSummary
 from .serializers import TaskSummarySerializer
 
 class TaskSummaryListCreate(APIView):
-    def delete_old_tasks(self):
-        seven_days_ago = datetime.now() - datetime.timedelta(days=7)
-        TaskSummary.objects.filter(date__lt=seven_days_ago).delete()
     def get(self, request):
         summaries = TaskSummary.objects.all()
         serializer = TaskSummarySerializer(summaries, many=True)

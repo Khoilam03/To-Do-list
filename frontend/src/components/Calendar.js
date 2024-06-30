@@ -54,7 +54,7 @@ export default class Calendar extends Component {
                     {date.getDate()}
                     {summary && (
                       <div>
-                        <p>Completed: {summary.completed}/{totalTasks}</p>
+                        <p>{summary.completed}/{totalTasks}</p>
                       </div>
                     )}
                   </td>
