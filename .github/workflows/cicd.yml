@@ -34,7 +34,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
+#haven't really done the cp yet
     - name: Notify deployment
       run: |
         echo "Deployment to local server is ready. Follow the instructions below to deploy manually."
