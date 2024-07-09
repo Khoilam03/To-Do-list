@@ -19,6 +19,9 @@ export default class CreateToDo extends Component {
       showDeleteButtons: false,
       taskSummary: {},
       hoveredItemId: null,
+      editId: null, // ID of the todo item being edited
+      editTitle: "", // Title of the todo item being edited
+      editCompleted: false, // Completion status of the todo item being edited
     };
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleCompletedChange = this.handleCompletedChange.bind(this);
@@ -28,6 +31,10 @@ export default class CreateToDo extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleClear = this.handleClear.bind(this);
     this.deleteButtons = this.deleteButtons.bind(this);
+    this.handleEditButtonPressed = this.handleEditButtonPressed.bind(this);
+    this.handleUpdateButtonPressed = this.handleUpdateButtonPressed.bind(this);
+    this.handleEditTitleChange = this.handleEditTitleChange.bind(this);
+    this.handleEditCompletedChange = this.handleEditCompletedChange.bind(this);
   }
 
   componentDidMount() {
@@ -79,6 +86,12 @@ export default class CreateToDo extends Component {
   }
 
   handleCreateButtonPressed() {
+    if (this.state.title.trim() === "") {
+      // Optionally, you can show a message to the user that the title is required
+      alert("Title is required");
+      return; // Exit the function if the title is blank
+    }
+
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -87,6 +100,7 @@ export default class CreateToDo extends Component {
         completed: this.state.completed,
       }),
     };
+
     fetch("/api/", requestOptions)
       .then((response) => response.json())
       .then((data) => {
@@ -96,6 +110,42 @@ export default class CreateToDo extends Component {
           completed: false,
         }));
       });
+  }
+
+  handleEditButtonPressed(todo) {
+    this.setState({
+      editId: todo.id,
+      editTitle: todo.title,
+      editCompleted: todo.completed,
+    });
+  }
+
+  handleUpdateButtonPressed() {
+    if (this.state.editTitle.trim() === "") {
+      alert("Title is required");
+      return;
+    }
+
+    const updatedTodos = this.state.todos.map((todo) =>
+      todo.id === this.state.editId
+        ? { ...todo, title: this.state.editTitle, completed: this.state.editCompleted }
+        : todo
+    );
+
+    this.setState({
+      todos: updatedTodos,
+      editId: null,
+      editTitle: "",
+      editCompleted: false,
+    });
+  }
+
+  handleEditTitleChange(e) {
+    this.setState({ editTitle: e.target.value });
+  }
+
+  handleEditCompletedChange(e) {
+    this.setState({ editCompleted: e.target.checked });
   }
 
   handleDeleteButtonPressed(id) {
@@ -128,19 +178,22 @@ export default class CreateToDo extends Component {
       body: JSON.stringify({
         id: todo.id,
         title: todo.title,
-        completed: !todo.completed,
+        completed: !todo.completed, // Toggle the completed status
       }),
     };
-    fetch("/api/", requestOptions)
-      .then((response) => response.json())
-      .then((data) => {
-        this.setState((prevState) => ({
-          todos: prevState.todos.map((t) =>
-            t.id === data.id ? { ...t, completed: data.completed } : t
-          ),
-        }));
-      });
+    fetch(`/api/`, requestOptions)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not OK");
+        }
+        return response.json();
+      })
+      const updatedTodos = this.state.todos.map((t) =>
+        t.id === todo.id ? { ...t, completed: !t.completed } : t
+      );
+      this.setState({ todos: updatedTodos });
   }
+  
 
   handleSubmit() {
     const curr = new Date();
@@ -244,7 +297,17 @@ export default class CreateToDo extends Component {
   };
 
   render() {
-    const { todos, isLoading, error, showDeleteButtons, taskSummary, hoveredItemId } = this.state;
+    const {
+      todos,
+      isLoading,
+      error,
+      showDeleteButtons,
+      taskSummary,
+      hoveredItemId,
+      editId,
+      editTitle,
+      editCompleted,
+    } = this.state;
 
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -258,7 +321,7 @@ export default class CreateToDo extends Component {
       backgroundColor: "lightgreen",
     };
     const nonCompletedStyle = {
-      backgroundColor: "lightyellow",
+      backgroundColor: "lightgray",
     };
     const hoverStyle = {
       filter: "brightness(95%)",
@@ -312,71 +375,84 @@ export default class CreateToDo extends Component {
             Create Todo Item
           </Button>
         </Grid>
-        <Grid item xs={5}>
-          <h1>Todo List</h1>
-        </Grid>
-        <Grid item xs={1}>
-          <Button
-            color={buttonColor}
-            variant="contained"
-            onClick={this.deleteButtons}
-          >
-            Delete
-          </Button>
-        </Grid>
-        <Grid item xs={1}>
+        <Grid item xs={12} style={{ padding: 10, display: 'flex', alignItems: 'center',  }}>
+          <Typography component="h1" variant="h5">
+            Todo List
+          </Typography>
           <Button
             color="secondary"
             variant="contained"
             onClick={this.handleClear}
+            style={{ marginLeft: '20px' }} 
           >
             Clear
           </Button>
-        </Grid>
-        <Grid item xs={4}>
           <Button
             color="primary"
             variant="contained"
             onClick={this.handleSubmit}
+            style={{ marginLeft: '20px' }} 
           >
-            Submit
+            Submit for the day
           </Button>
         </Grid>
         <Grid item xs={4} className="scrollable-list">
-          <ul style={{ listStyleType: "none", padding: 0 }}>
+          <ul style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
             {todos.map((todo) => (
               <li
                 key={todo.id}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginRight: "10px",
-                  marginLeft: 0,
                   padding: "10px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   ...(todo.completed ? completedStyle : nonCompletedStyle),
-                  ...(hoveredItemId !== null && !showDeleteButtons && hoveredItemId === todo.id
-                    ? hoverStyle
-                    : {}),
-                  ...(hoveredItemId !== null && showDeleteButtons  && hoveredItemId === todo.id
-                    ? hoverDelete
-                    : {}),
                 }}
-                onClick={() => showDeleteButtons ? this.handleDeleteButtonPressed(todo.id) : this.handleToggleButtonPressed(todo)}
-                onMouseEnter={() =>
-                  this.setState({ hoveredItemId: todo.id })
-                }
-                onMouseLeave={() =>
-                  this.setState({ hoveredItemId: null })
-                }
               >
-                <span style={{ marginRight: "auto", fontWeight: "bold" }}>
-                  {todo.title}
-                </span>
-                <span style={{ marginLeft: "auto" }}>
-                  {todo.completed ? "Completed" : "Not Completed"}
-                </span>
+                <div style={{ flexGrow: 1 }}>
+                  {editId === todo.id ? (
+                    <TextField
+                      value={editTitle}
+                      onChange={this.handleEditTitleChange}
+                      onBlur={this.handleUpdateButtonPressed}
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      onClick={() => this.handleEditButtonPressed(todo)}
+                      style={{
+                        textDecoration: todo.completed ? "line-through" : "none",
+                        cursor: "pointer",
+                        marginRight: "auto", fontWeight: "bold"
+                      }}
+                    >
+                      {todo.title}
+                    </span>
+                  )}
+                </div>
+                <Checkbox
+                  checked={todo.completed}
+                  onChange={() => this.handleToggleButtonPressed(todo)}
+                />
+                {(
+                  <Button
+                    color="secondary"
+                    variant="contained"
+                    onClick={() => this.handleDeleteButtonPressed(todo.id)}
+                    size="small"
+                    style={{
+                      minWidth: '20px',
+                      minHeight: '20px',
+                      padding: '0',
+                      fontSize: '10px',
+                      lineHeight: '20px',
+                      textAlign: 'center'
+                    }}
+                  >
+                    X
+                  </Button>
+                )}
               </li>
-
             ))}
           </ul>
         </Grid>
