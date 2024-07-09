@@ -35,10 +35,12 @@ jobs:
         node-version: '14'  # Adjust the version as needed
 
     - name: Install Node.js dependencies
+      working-directory: ./frontend
       run: |
         npm install
 
     - name: Run JavaScript tests
+      working-directory: ./frontend
       run: |
         npm test
 
@@ -64,7 +66,7 @@ jobs:
         echo "   pip install -r requirements.txt"
         echo ""
         echo "4. Install Node.js dependencies:"
-        echo "   npm install"
+        echo "   cd frontend && npm install"
         echo ""
         echo "5. Run database migrations:"
         echo "   python manage.py migrate"
