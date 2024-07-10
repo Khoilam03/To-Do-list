@@ -35,6 +35,7 @@ export default class CreateToDo extends Component {
     this.handleUpdateButtonPressed = this.handleUpdateButtonPressed.bind(this);
     this.handleEditTitleChange = this.handleEditTitleChange.bind(this);
     this.handleEditCompletedChange = this.handleEditCompletedChange.bind(this);
+    this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
   }
 
   componentDidMount() {
@@ -148,6 +149,12 @@ export default class CreateToDo extends Component {
     this.setState({ editCompleted: e.target.checked });
   }
 
+  handleEditKeyPress(event) {
+    if (event.key === "Enter") {
+      this.handleUpdateButtonPressed();
+    }
+  }
+
   handleDeleteButtonPressed(id) {
     const requestOptions = {
       method: "DELETE",
@@ -193,7 +200,6 @@ export default class CreateToDo extends Component {
       );
       this.setState({ todos: updatedTodos });
   }
-  
 
   handleSubmit() {
     const curr = new Date();
@@ -375,8 +381,8 @@ export default class CreateToDo extends Component {
             Create Todo Item
           </Button>
         </Grid>
-        <Grid item xs={12} style={{ padding: 10, display: 'flex', alignItems: 'center',  }}>
-          <Typography component="h1" variant="h5">
+        <Grid item xs={12} style={{ padding: 10, display: 'flex', alignItems: 'center'}}>
+          <Typography component="h1" variant="h5"  style= {{fontWeight: "bold"}}>
             Todo List
           </Typography>
           <Button
@@ -415,6 +421,7 @@ export default class CreateToDo extends Component {
                       value={editTitle}
                       onChange={this.handleEditTitleChange}
                       onBlur={this.handleUpdateButtonPressed}
+                      onKeyPress={this.handleEditKeyPress}
                       autoFocus
                     />
                   ) : (

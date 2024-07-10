@@ -52,24 +52,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Notify deployment
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build Docker images
       run: |
-        echo "Deployment to local server is ready. Follow the instructions below to deploy manually."
-        echo ""
-        echo "1. Pull the latest changes on your local machine:"
-        echo "   git pull origin main"
-        echo ""
-        echo "2. Activate your virtual environment:"
-        echo "   source /path/to/your/virtualenv/bin/activate"
-        echo ""
-        echo "3. Install dependencies:"
-        echo "   pip install -r requirements.txt"
-        echo ""
-        echo "4. Install Node.js dependencies:"
-        echo "   cd frontend && npm install"
-        echo ""
-        echo "5. Run database migrations:"
-        echo "   python manage.py migrate"
-        echo ""
-        echo "6. Restart the Django service (if running with systemd):"
-        echo "   sudo systemctl restart your_django_service"
+        docker buildx build --tag your-app:latest .
+
+    - name: Deploy Docker containers
+      run: |
+        docker-compose -f docker-compose.yml up -d
+
+    # Optional: Post-deployment testing steps
+    - name: Run post-deployment tests
+      run: |
+        curl --fail http://localhost:8000 || exit 1
