@@ -70,7 +70,7 @@ jobs:
     - name: List running Docker containers
       run: |
         docker ps -a
-
+ 
     - name: Check container logs
       run: |
         container_id=$(docker ps -q -f "ancestor=to-do-list_app:latest")
