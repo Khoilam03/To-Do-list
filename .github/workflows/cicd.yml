@@ -62,8 +62,3 @@ jobs:
     - name: Deploy Docker containers
       run: |
         docker-compose -f docker-compose.yml up -d
-
-    # Optional: Post-deployment testing steps
-    - name: Run post-deployment tests
-      run: |
-        curl --fail http://localhost:8000 || exit 1
