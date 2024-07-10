@@ -70,3 +70,8 @@ jobs:
     - name: List running Docker containers
       run: |
         docker ps
+
+    - name: Test application inside the container
+      run: |
+        container_id=$(docker ps -q -f "ancestor=your-app:latest") && \
+        docker exec $container_id curl --fail http://localhost:8000 || exit 1
