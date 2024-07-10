@@ -69,9 +69,16 @@ jobs:
     
     - name: List running Docker containers
       run: |
-        docker ps
+        docker ps -a
+
+    - name: Check container logs
+      run: |
+        container_id=$(docker ps -q -f "ancestor=your-app:latest")
+        echo "Container ID: $container_id"
+        docker logs $container_id
 
     - name: Test application inside the container
       run: |
         container_id=$(docker ps -q -f "ancestor=your-app:latest") && \
+        echo "Container ID: $container_id" && \
         docker exec $container_id curl --fail http://localhost:8000 || exit 1
