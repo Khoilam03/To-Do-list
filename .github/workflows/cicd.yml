@@ -57,7 +57,7 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker buildx build --tag your-app:latest --load .
+        docker buildx build --tag to-do-list_app:latest --load .
     
     - name: List Docker images
       run: |
@@ -73,12 +73,12 @@ jobs:
 
     - name: Check container logs
       run: |
-        container_id=$(docker ps -q -f "ancestor=your-app:latest")
+        container_id=$(docker ps -q -f "ancestor=to-do-list_app:latest")
         echo "Container ID: $container_id"
-        docker logs $container_id
+        if [ -n "$container_id" ]; then docker logs $container_id; else echo "Container not found"; fi
 
     - name: Test application inside the container
       run: |
-        container_id=$(docker ps -q -f "ancestor=your-app:latest") && \
+        container_id=$(docker ps -q -f "ancestor=to-do-list_app:latest") && \
         echo "Container ID: $container_id" && \
-        docker exec $container_id curl --fail http://localhost:8000 || exit 1
+        if [ -n "$container_id" ]; then docker exec $container_id curl --fail http://localhost:8000; else echo "Container not found"; exit 1; fi
