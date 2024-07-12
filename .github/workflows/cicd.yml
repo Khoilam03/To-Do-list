@@ -70,7 +70,7 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
-
+ 
     - name: Tag Docker image
       run: |
         REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
