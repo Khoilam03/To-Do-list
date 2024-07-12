@@ -1,4 +1,4 @@
-name: CI/CD for Local Deployment
+name: CI/CD for Docker and ECR
 
 on:
   push:
@@ -39,15 +39,19 @@ jobs:
       run: |
         npm install
 
+    - name: Build frontend
+      working-directory: ./frontend
+      run: |
+        npm run build  # Ensure this command generates the build output in the expected directory
+
     - name: Run JavaScript tests
       working-directory: ./frontend
       run: |
         npm test
 
-  deploy:
+  push-to-ecr:
     needs: build-and-test
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -57,8 +61,22 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # specify your AWS region
+        aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Deploy to S3
+    - name: Log in to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build Docker image
       run: |
-        aws s3 sync ./frontend/dist s3://your-bucket-name --delete
+        docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+
+    - name: Tag Docker image
+      run: |
+        REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
+        docker tag ${{ secrets.ECR_REPOSITORY }}:latest $REPOSITORY_URI:latest
+
+    - name: Push Docker image to ECR
+      run: |
+        REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
+        docker push $REPOSITORY_URI:latest
