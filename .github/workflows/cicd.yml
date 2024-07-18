@@ -68,18 +68,14 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Build Docker image
-      run: |
-        docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+      run: docker-compose build
 
-    - name: Tag Docker image
+    - name: Tag and Push Docker image
       run: |
         REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
-        docker tag ${{ secrets.ECR_REPOSITORY }}:latest $REPOSITORY_URI:latest
-
-    - name: Push Docker image to ECR
-      run: |
-        REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
+        docker tag my-image:latest $REPOSITORY_URI:latest
         docker push $REPOSITORY_URI:latest
+
   deploy-ecs:
     needs: push-to-ecr
     runs-on: ubuntu-latest

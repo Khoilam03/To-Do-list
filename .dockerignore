@@ -24,3 +24,6 @@ Dockerfile
 # Ignore OS generated files
 .DS_Store
 Thumbs.db
+
+.terraform
+terraform
