@@ -98,5 +98,5 @@ jobs:
       working-directory: ./terraform
 
     - name: Apply Terraform
-      run: terraform apply -auto-approve -var="ecr_repository_url=471112851264.dkr.ecr.us-east-1.amazonaws.com/todolist:latest"
+      run: terraform destroy -auto-approve -var-file="terraform.tfvars"
       working-directory: ./terraform
