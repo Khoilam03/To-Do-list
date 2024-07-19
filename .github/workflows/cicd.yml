@@ -98,5 +98,5 @@ jobs:
       working-directory: ./terraform
 
     - name: Apply Terraform
-      run: terraform destroy -auto-approve -var-file="terraform.tfvars"
+      run: terraform apply -auto-approve -var-file="terraform.tfvars"
       working-directory: ./terraform
