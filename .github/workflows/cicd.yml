@@ -67,36 +67,57 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
+    - name: Read current version
+      id: read_version
+      run: |
+        VERSION=$(cat version.txt)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Increment version
+      id: increment_version
+      run: |
+        VERSION=$(($VERSION + 1))
+        echo $VERSION > version.txt
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
     - name: Build Docker image
       run: docker-compose build
 
     - name: Tag and Push Docker image
       run: |
         REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
-        docker tag my-image:latest $REPOSITORY_URI:latest
-        docker push $REPOSITORY_URI:latest
+        docker tag my-image:latest $REPOSITORY_URI:$VERSION
+        docker push $REPOSITORY_URI:$VERSION
 
-  deploy-ecs:
-    needs: push-to-ecr
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Commit updated version
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add version.txt
+        git commit -m "Increment version to $VERSION"
+        git push
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+  # deploy-ecs:
+  #   needs: push-to-ecr
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+  #   - name: Configure AWS credentials
+  #     uses: aws-actions/configure-aws-credentials@v1
+  #     with:
+  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Initialize Terraform
-      run: terraform init
-      working-directory: ./terraform
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v1
 
-    - name: Apply Terraform
-      run: terraform apply -auto-approve -var-file="terraform.tfvars"
-      working-directory: ./terraform
+  #   - name: Initialize Terraform
+  #     run: terraform init
+  #     working-directory: ./terraform
+
+  #   - name: Apply Terraform
+  #     run: terraform apply -auto-approve -var-file="terraform.tfvars"
+  #     working-directory: ./terraform
