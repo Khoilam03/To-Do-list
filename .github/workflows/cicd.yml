@@ -84,7 +84,7 @@ jobs:
       run: docker-compose build
 
     - name: Tag and Push Docker image
-      run: |
+      run: | 
         REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
         docker tag my-image:latest $REPOSITORY_URI:$VERSION
         docker push $REPOSITORY_URI:$VERSION
