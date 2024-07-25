@@ -1,27 +1,27 @@
-Anh Dương, em bị lock out khỏi tài khoản và nó bắt em phải contact IT support nhưng em không biết làm thế nào để làm vậy. Anh giúp em được không? email của em là: khoi.lam1123@gmail.com
- 
- # To-Do-list
-This project aims to create a to do list for the users. This project uses react, django, and rest framework.
+@tranduyduong: Anh Dương, em bị lock out khỏi tài khoản và nó bắt em phải contact IT support nhưng em không biết làm thế nào để làm vậy. Anh giúp em được không? email của em là: khoi.lam1123@gmail.com
 
-frontend: the front end of the project. It uses react and javascript in order to show the users the list of the to do.
+# To-Do-list
+This project aims to create a to-do list for the users. This project uses React, Django, and REST framework.
+
+frontend: the front end of the project. It uses React and JavaScript in order to show the users the list of the to-dos.
 Within the frontend:
-- src: this directory holds the components of the frontends
-- - components: this contains all of the pages of the javascript
-- - - Homepage.js: Home page
-- - - CreateToDo.js: this is the main page to show the user the to do list
-- - - Calendar.js: this is the script for the calendar
+- src: this directory holds the components of the frontend.
+  - components: this contains all of the pages of the JavaScript.
+    - Homepage.js: Home page.
+    - CreateToDo.js: this is the main page to show the user the to-do list.
+    - Calendar.js: this is the script for the calendar.
 
-- static: this directory holds the css format for the frontend and the script for the program to run
+- static: this directory holds the CSS format for the frontend and the script for the program to run.
 
-myapp: the back end of the project. It uses django and follow the rest api, following crud format
-- serializers.py: this shows what we want to hold and what the front end could get and edit from
+myapp: the back end of the project. It uses Django and follows the REST API, following the CRUD format.
+- serializers.py: this shows what we want to hold and what the frontend could get and edit from.
 
-calendarapi: this is another rest api that contains the data for the date and how many tasks are completed.
+calendarapi: this is another REST API that contains the data for the date and how many tasks are completed.
 
-mockProject: the main, running the project
+mockProject: the main, running the project.
 
-How to run:
-    run docker-compose build
-    Then run docker-compose up
-    Then use the port of 127.0.0.1:8000/
-    The main page is the 127.0.0.1:8000/create
+## How to run:
+1. Run `docker-compose build`.
+2. Then run `docker-compose up`.
+3. Then use the port `127.0.0.1:8000/`.
+4. The main page is `127.0.0.1:8000/create`.
