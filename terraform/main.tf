@@ -75,8 +75,8 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8000
+    to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -93,8 +93,8 @@ resource "aws_security_group" "alb_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8000
+    to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -126,6 +126,10 @@ resource "aws_iam_role" "ecs_task_execution" {
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
   ]
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 resource "aws_ecs_cluster" "main" {
@@ -140,11 +144,15 @@ resource "aws_lb" "main" {
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
 
   enable_deletion_protection = false
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 resource "aws_lb_target_group" "main" {
   name        = "example-tg"
-  port        = 80
+  port        = 8000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
@@ -157,11 +165,15 @@ resource "aws_lb_target_group" "main" {
     unhealthy_threshold = 2
     matcher             = "200"
   }
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
-  port              = "80"
+  port              = "8000"
   protocol          = "HTTP"
 
   default_action {
@@ -173,6 +185,10 @@ resource "aws_lb_listener" "http" {
 resource "aws_cloudwatch_log_group" "example" {
   name              = "/ecs/example"
   retention_in_days = 7
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 resource "aws_ecs_task_definition" "main" {
@@ -189,8 +205,8 @@ resource "aws_ecs_task_definition" "main" {
       image = var.ecr_repository_url
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8000
+          hostPort      = 8000
         }
       ]
       logConfiguration = {
@@ -221,7 +237,7 @@ resource "aws_ecs_service" "main" {
   load_balancer {
     target_group_arn = aws_lb_target_group.main.arn
     container_name   = "example"
-    container_port   = 80
+    container_port   = 8000
   }
 
   depends_on = [
