@@ -1,4 +1,6 @@
 @tranduyduong: Anh Dương, em bị lock out khỏi tài khoản và nó bắt em phải contact IT support nhưng em không biết làm thế nào để làm vậy. Anh giúp em được không? email của em là: khoi.lam1123@gmail.com
+@DuongTD
+@Khoilam03
 
 # To-Do-list
 This project aims to create a to-do list for the users. This project uses React, Django, and REST framework.
