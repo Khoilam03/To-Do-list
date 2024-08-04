@@ -43,7 +43,7 @@ jobs:
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   build-and-test:
-    needs: sonarQube
+    # needs: sonarQube
     runs-on: ubuntu-latest
 
     steps:
