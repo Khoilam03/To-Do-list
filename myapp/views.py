@@ -33,29 +33,19 @@ def todoList(request):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else: return Response("Empty data provided", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Empty data provided", status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == "DELETE":
         item_id = request.data.get('id')
-        if not item_id:
-            return Response({"error": "ID is required to delete an item"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            item = TodoItem.objects.get(id=item_id)
-            item.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except TodoItem.DoesNotExist:
-            return Response({"error": "Item not found"}, status=status.HTTP_404_NOT_FOUND)
+        item = TodoItem.objects.get(id=item_id)
+        item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     if request.method == "PUT":
         item_id = request.data.get('id')
-        if not item_id:
-            return Response({"error": "ID is required to update an item"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            item = TodoItem.objects.get(id=item_id)
-            serializer = TodoSerializer(item, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except TodoItem.DoesNotExist:
-            return Response({"error": "Item not found"}, status=status.HTTP_404_NOT_FOUND)
+        item = TodoItem.objects.get(id=item_id)
+        serializer = TodoSerializer(item, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
