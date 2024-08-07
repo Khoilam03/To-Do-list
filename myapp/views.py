@@ -20,7 +20,7 @@ def clear(request):
     deleted, _ = TodoItem.objects.all().delete()
     return Response({"deleted": deleted}, status=status.HTTP_204_NO_CONTENT)
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
-def todoList(request):
+def todolist(request):
     if request.method == "GET":
         items = TodoItem.objects.all()
         serializer = TodoSerializer(items, many=True)
