@@ -33,8 +33,8 @@ export default class Calendar extends Component {
         <table>
           <thead>
             <tr>
-              {currentWeek.map((date, index) => (
-                <th key={index}>
+              {currentWeek.map((date) => (
+                <th key={date.toISOString()}>
                   {date.toLocaleString('default', { weekday: 'short' })}
                 </th>
               ))}
@@ -42,14 +42,14 @@ export default class Calendar extends Component {
           </thead>
           <tbody>
             <tr>
-              {currentWeek.map((date, index) => {
+              {currentWeek.map((date) => {
                 const dateStr = date.toISOString().split('T')[0];
                 const summary = taskSummary[dateStr];
                 const totalTasks = summary ? summary.completed + summary.not_completed : 0;
 
                 return (
                   <td
-                    key={index}
+                    key={date.toISOString()}
                     className={date.toDateString() === today.toDateString() ? 'highlight' : ''}
                   >
                     {date.getDate()}
@@ -68,6 +68,7 @@ export default class Calendar extends Component {
     );
   }
 }
+
 Calendar.propTypes = {
   taskSummary: PropTypes.objectOf(
     PropTypes.shape({
