@@ -12,7 +12,7 @@ def home(request):
 def todos(request):
     items = TodoItem.objects.all()
     return render(request, "todo.html", {"todos": items})
-def jsonTodos():
+def jsontodos():
     items = TodoItem.objects.all().values()
     return JsonResponse(list(items), safe=False) 
 @api_view(['DELETE'])
