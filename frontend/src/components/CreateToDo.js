@@ -18,8 +18,8 @@ export default class CreateToDo extends Component {
       error: null,
       showDeleteButtons: false,
       taskSummary: {},
-      editId: null, // ID of the todo item being edited
-      editTitle: "", // Title of the todo item being edited
+      editId: null,
+      editTitle: "",
     };
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleCompletedChange = this.handleCompletedChange.bind(this);
@@ -305,7 +305,6 @@ export default class CreateToDo extends Component {
       todos,
       isLoading,
       error,
-      showDeleteButtons,
       taskSummary,
       editId,
       editTitle,
