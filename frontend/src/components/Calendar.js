@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 export default class Calendar extends Component {
   constructor(props) {
@@ -67,3 +68,11 @@ export default class Calendar extends Component {
     );
   }
 }
+Calendar.propTypes = {
+  taskSummary: PropTypes.objectOf(
+    PropTypes.shape({
+      completed: PropTypes.number.isRequired,
+      not_completed: PropTypes.number.isRequired
+    })
+  ).isRequired
+};
