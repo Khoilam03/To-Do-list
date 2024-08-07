@@ -13,8 +13,9 @@ def todos(request):
     items = TodoItem.objects.all()
     return render(request, "todo.html", {"todos": items})
 def jsontodos(request):
-    items = TodoItem.objects.all().values()
-    return JsonResponse(list(items), safe=False) 
+    if request.method == 'GET':
+        items = TodoItem.objects.all().values()
+        return JsonResponse(list(items), safe=False) 
 @api_view(['DELETE'])
 def clear(request):
     deleted, _ = TodoItem.objects.all().delete()
