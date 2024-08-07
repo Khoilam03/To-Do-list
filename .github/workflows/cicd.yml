@@ -9,146 +9,131 @@ on:
       - main
 
 jobs:
-  # sonarQube:
-  #   name: SonarQube Analysis
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '16'  # Or any other relevant version for your project
-
-  #     - name: Install SonarQube Scanner
-  #       run: npm install -g sonarqube-scanner
-
-  #     - name: Run SonarQube Scanner
-  #       env:
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #       run: |
-  #         sonar-scanner \
-  #         -Dsonar.projectKey=Khoilam03_To-Do-list \
-  #         -Dsonar.organization=khoilam03 \
-  #         -Dsonar.sources=. \
-  #         -Dsonar.host.url=https://sonarcloud.io \
-  #         -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-  build-and-test:
-    # needs: sonarQube
+  sonarQube:
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    # Python setup and testing steps
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'  # Adjust the version as needed
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
 
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install SonarQube Scanner
+        run: npm install -g sonarqube-scanner
 
-    - name: Run Python tests
-      run: |
-        python manage.py test
+      - name: Run SonarQube Scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+          -Dsonar.projectKey=Khoilam03_To-Do-list \
+          -Dsonar.organization=khoilam03 \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-    # Node.js setup and testing steps
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'  # Adjust the version as needed
+      - name: Check SonarCloud Quality Gate
+        id: check_quality_gate
+        run: |
+          qualityGateStatus=$(curl -sS -u ${{ secrets.SONAR_TOKEN }}: \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=Khoilam03_To-Do-list" \
+            | jq -r '.projectStatus.status')
+          echo "Quality Gate Status: $qualityGateStatus"
+          echo "::set-output name=status::$qualityGateStatus"
 
-    - name: Install Node.js dependencies
-      working-directory: ./frontend
-      run: |
-        npm install
+  build-and-test:
+    needs: sonarQube
+    runs-on: ubuntu-latest
+    if: needs.sonarQube.outputs.status == 'OK'
 
-    - name: Build frontend
-      working-directory: ./frontend
-      run: |
-        npm run build  # Ensure this command generates the build output in the expected directory
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Run JavaScript tests
-      working-directory: ./frontend
-      run: |
-        npm test
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
 
-  # push-to-ecr:
-  #   needs: build-and-test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v2
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{ secrets.AWS_REGION }}
+      - name: Run Python tests
+        run: |
+          python manage.py test
 
-  #   - name: Log in to Amazon ECR
-  #     id: login-ecr
-  #     uses: aws-actions/amazon-ecr-login@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
 
-  #   - name: Read current version
-  #     id: read_version
-  #     run: |
-  #       VERSION=$(cat version.txt)
-  #       echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Install Node.js dependencies
+        working-directory: ./frontend
+        run: |
+          npm install
 
-  #   - name: Increment version
-  #     id: increment_version
-  #     run: |
-  #       VERSION=$(($VERSION + 1))
-  #       echo $VERSION > version.txt
-  #       echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Build frontend
+        working-directory: ./frontend
+        run: |
+          npm run build
 
-  #   - name: Build Docker image
-  #     run: docker-compose build
+      - name: Run JavaScript tests
+        working-directory: ./frontend
+        run: |
+          npm test
 
-  #   - name: Tag and Push Docker image
-  #     run: | 
-  #       REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
-  #       docker tag my-image:latest $REPOSITORY_URI:$VERSION
-  #       docker push $REPOSITORY_URI:$VERSION
+  manual-approval:
+    needs: sonarQube
+    runs-on: ubuntu-latest
+    if: needs.sonarQube.outputs.status != 'OK'
 
-  #   - name: Commit updated version
-  #     run: |
-  #       git config --global user.name 'github-actions[bot]'
-  #       git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-  #       git add version.txt
-  #       git commit -m "Increment version to $VERSION"
-  #       git push
+    steps:
+      - name: Post comment for approval
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            SonarCloud analysis has failed. Do you want to proceed with the merge? Please add a comment with "approved" to continue.
 
-  # deploy-ecs:
-  #   needs: push-to-ecr
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v2
+      - name: Wait for approval
+        id: wait_for_approval
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            const checkApproval = async () => {
+              const { data: comments } = await github.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
 
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{ secrets.AWS_REGION }}
+              return comments.some((comment) => /approved/i.test(comment.body));
+            };
 
-  #   - name: Setup Terraform
-  #     uses: hashicorp/setup-terraform@v1
+            let approved = false;
+            const timeout = Date.now() + 3600 * 1000;  // 1 hour timeout
+            while (Date.now() < timeout) {
+              approved = await checkApproval();
+              if (approved) break;
+              await wait(15000);  // Wait for 15 seconds
+            }
 
-  #   - name: Initialize Terraform
-  #     run: terraform init
-  #     working-directory: ./terraform
+            if (!approved) {
+              core.setFailed("Approval not received within the time limit.");
+            }
 
-  #   - name: Apply Terraform
-  #     run: terraform apply -auto-approve -var-file="terraform.tfvars"
-  #     working-directory: ./terraform
+            return approved;
+
+      - name: Proceed if approved
+        if: steps.wait_for_approval.outputs.result == 'true'
+        run: echo "Approved. Proceeding with the build and test."
