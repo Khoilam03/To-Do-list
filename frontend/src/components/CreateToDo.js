@@ -18,10 +18,8 @@ export default class CreateToDo extends Component {
       error: null,
       showDeleteButtons: false,
       taskSummary: {},
-      hoveredItemId: null,
       editId: null, // ID of the todo item being edited
       editTitle: "", // Title of the todo item being edited
-      editCompleted: false, // Completion status of the todo item being edited
     };
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handleCompletedChange = this.handleCompletedChange.bind(this);
@@ -309,10 +307,8 @@ export default class CreateToDo extends Component {
       error,
       showDeleteButtons,
       taskSummary,
-      hoveredItemId,
       editId,
       editTitle,
-      editCompleted,
     } = this.state;
 
     if (error) {
@@ -329,15 +325,6 @@ export default class CreateToDo extends Component {
     const nonCompletedStyle = {
       backgroundColor: "lightgray",
     };
-    const hoverStyle = {
-      filter: "brightness(95%)",
-      cursor: "pointer",
-    };
-    const hoverDelete = {
-      backgroundColor: "red",
-      cursor: "pointer",
-    };
-    const buttonColor = showDeleteButtons ? "secondary" : "default";
     return (
       <Grid container spacing={1}>
         <Grid item xs={5}></Grid>
