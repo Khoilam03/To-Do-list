@@ -12,11 +12,11 @@ def home(request):
 def todos(request):
     items = TodoItem.objects.all()
     return render(request, "todo.html", {"todos": items})
-def jsonTodos(request):
+def jsonTodos():
     items = TodoItem.objects.all().values()
     return JsonResponse(list(items), safe=False) 
 @api_view(['DELETE'])
-def clear(request):
+def clear():
     deleted, _ = TodoItem.objects.all().delete()
     return Response({"deleted": deleted}, status=status.HTTP_204_NO_CONTENT)
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
