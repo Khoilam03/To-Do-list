@@ -195,10 +195,10 @@ export default class CreateToDo extends Component {
         }
         return response.json();
       })
-      const updatedTodos = this.state.todos.map((t) =>
-        t.id === todo.id ? { ...t, completed: !t.completed } : t
-      );
-      this.setState({ todos: updatedTodos });
+    const updatedTodos = this.state.todos.map((t) =>
+      t.id === todo.id ? { ...t, completed: !t.completed } : t
+    );
+    this.setState({ todos: updatedTodos });
   }
 
   handleSubmit() {
@@ -381,15 +381,15 @@ export default class CreateToDo extends Component {
             Create Todo Item
           </Button>
         </Grid>
-        <Grid item xs={12} style={{ padding: 10, display: 'flex', alignItems: 'center'}}>
-          <Typography component="h1" variant="h5"  style= {{fontWeight: "bold"}}>
+        <Grid item xs={12} style={{ padding: 10, display: 'flex', alignItems: 'center' }}>
+          <Typography component="h1" variant="h5" style={{ fontWeight: "bold" }}>
             Todo List
           </Typography>
           <Button
             color="secondary"
             variant="contained"
             onClick={this.handleClear}
-            style={{ marginLeft: '20px' }} 
+            style={{ marginLeft: '20px' }}
           >
             Clear
           </Button>
@@ -397,7 +397,7 @@ export default class CreateToDo extends Component {
             color="primary"
             variant="contained"
             onClick={this.handleSubmit}
-            style={{ marginLeft: '20px' }} 
+            style={{ marginLeft: '20px' }}
           >
             Submit for the day
           </Button>
@@ -425,16 +425,19 @@ export default class CreateToDo extends Component {
                       autoFocus
                     />
                   ) : (
-                    <span
+                    <button
                       onClick={() => this.handleEditButtonPressed(todo)}
                       style={{
                         textDecoration: todo.completed ? "line-through" : "none",
                         cursor: "pointer",
-                        marginRight: "auto", fontWeight: "bold"
+                        marginRight: "auto",
+                        fontWeight: "bold",
+                        background: "none",
+                        border: "none",
                       }}
                     >
                       {todo.title}
-                    </span>
+                    </button>
                   )}
                 </div>
                 <Checkbox
