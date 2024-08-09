@@ -27,8 +27,6 @@ jobs:
               "https://sonarcloud.io/api/qualitygates/project_status?projectKey=Khoilam03_To-Do-list" \
               | jq -r '.projectStatus.status')
             echo "Quality Gate Status: $qualityGateStatus"
-            echo "::set-output name=status::$qualityGateStatus"
-            - name: Fail if Quality Gate Fails
   build-and-test:
     runs-on: ubuntu-latest
 
