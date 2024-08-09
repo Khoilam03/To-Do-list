@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  sonarQube:
+  sonarQube: 
     name: SonarQube Analysis
     runs-on: ubuntu-latest
 
