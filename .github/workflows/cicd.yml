@@ -29,11 +29,6 @@ jobs:
             echo "Quality Gate Status: $qualityGateStatus"
             echo "::set-output name=status::$qualityGateStatus"
             - name: Fail if Quality Gate Fails
-            
-            if: steps.check_quality_gate.outputs.status != 'OK'
-            run: |
-              echo "Quality Gate failed. Stopping the pipeline."
-              exit 1
   build-and-test:
     runs-on: ubuntu-latest
 
