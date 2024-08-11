@@ -119,7 +119,7 @@ jobs:
   #       REPOSITORY_URI=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
   #       docker tag my-image:latest $REPOSITORY_URI:$VERSION
   #       docker push $REPOSITORY_URI:$VERSION
-
+ 
   #   - name: Commit updated version
   #     run: |
   #       git config --global user.name 'github-actions[bot]'
