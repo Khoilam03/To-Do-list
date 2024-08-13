@@ -8,7 +8,7 @@ on:
     branches: 
       - main 
 
-jobs:
+jobs: 
   sonarQube:
     needs: build-and-test
     name: SonarQube Analysis
